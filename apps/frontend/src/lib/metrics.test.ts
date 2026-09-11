@@ -20,6 +20,7 @@ function row(overrides: Partial<LatestMetric> = {}): LatestMetric {
     oid: '1.3.6.1.2',
     metric_name: 'CPU',
     unit: '%',
+    category: 'device',
     value: 37.5,
     timestamp: ago(1000),
     ...overrides,
