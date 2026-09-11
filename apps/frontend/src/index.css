@@ -14,6 +14,12 @@
     --color-state-silent: var(--state-silent);
     --color-state-fault: var(--state-fault);
 
+    /* Site power grading uses hue plus tint, outline, weight, and a status dot
+       so the severity remains readable without relying on color alone. */
+    --color-grade-warn: var(--grade-warn);
+    --color-grade-crit: var(--grade-crit);
+    --color-grade-ok: var(--grade-ok);
+
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
@@ -94,6 +100,10 @@
     --state-stale: oklch(0.68 0.13 75);
     --state-silent: oklch(0.72 0.01 250);
     --state-fault: oklch(0.58 0.19 25);
+
+    --grade-ok: #15803d;
+    --grade-warn: #a16207;
+    --grade-crit: #b91c1c;
 }
 
 .dark {
@@ -133,6 +143,10 @@
     --state-stale: oklch(0.76 0.14 75);
     --state-silent: oklch(0.48 0.01 250);
     --state-fault: oklch(0.65 0.19 25);
+
+    --grade-ok: #4ade80;
+    --grade-warn: #fbbf24;
+    --grade-crit: #fb7185;
 }
 
 @layer base {
@@ -151,4 +165,54 @@
    sideways on each update; tabular ones hold their column. */
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+.site-page {
+  background-image: radial-gradient(
+    circle at 50% -25%,
+    color-mix(in oklab, var(--grade-ok) 9%, transparent),
+    transparent 38rem
+  );
+}
+
+.site-row,
+.site-reading {
+  transition: background-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
+}
+
+.site-row:hover {
+  background: color-mix(in oklab, var(--muted) 55%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-page > header,
+  .site-column {
+    animation: site-enter 420ms ease-out both;
+  }
+
+  .site-column:nth-child(2) {
+    animation-delay: 70ms;
+  }
+
+  .site-column:nth-child(3) {
+    animation-delay: 140ms;
+  }
+
+  .site-critical-dot {
+    animation: critical-breathe 2s ease-in-out infinite;
+  }
+}
+
+@keyframes site-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes critical-breathe {
+  50% {
+    opacity: 0.45;
+    transform: scale(0.72);
+  }
 }
