@@ -55,6 +55,8 @@ services:
     volumes:
       - ./sim/snmpd.conf:/etc/snmp/snmpd.conf:ro
       - ./sim/ptt-sim.sh:/usr/local/bin/ptt-sim.sh:ro
+      - ./sim/ptt-sim-persist.sh:/usr/local/bin/ptt-sim-persist.sh:ro
+      - ./sim/site-seed.txt:/usr/local/share/ptt-site-seed.txt:ro
 
 volumes:
   mariadb_data:
