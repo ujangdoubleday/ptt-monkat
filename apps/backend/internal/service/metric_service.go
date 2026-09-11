@@ -85,6 +85,7 @@ func joinLatest(targets []models.SnmpTarget, points map[uint64]models.MetricPoin
 			OID:        t.OID,
 			MetricName: t.MetricName,
 			Unit:       t.Unit,
+			Category:   t.Category,
 		}
 
 		if p, ok := points[t.ID]; ok {
