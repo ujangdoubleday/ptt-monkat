@@ -31,6 +31,13 @@ type MetricPoint struct {
 	Time       time.Time
 }
 
+// MetricSample is one point on a chart. Field names are single letters
+// because a history response repeats this struct a hundred times.
+type MetricSample struct {
+	Time  time.Time `json:"t"`
+	Value float64   `json:"v"`
+}
+
 // LatestMetric is one element of the GET /api/metrics/latest response:
 // master data from MariaDB plus the newest point from InfluxDB.
 // Value/Timestamp are pointers — null means "registered but never polled",

@@ -46,6 +46,33 @@ func TestJoinLatest(t *testing.T) {
 	}
 }
 
+func TestParseRange(t *testing.T) {
+	// Empty falls back to 1h rather than erroring — the query param is optional.
+	rng, window, ok := parseRange("")
+	if !ok || rng != time.Hour || window != time.Minute {
+		t.Errorf("default: got %v/%v ok=%v, want 1h/1m", rng, window, ok)
+	}
+
+	for _, key := range RangeKeys {
+		r, w, found := parseRange(key)
+		if !found {
+			t.Errorf("%s is advertised in RangeKeys but not accepted", key)
+			continue
+		}
+		// Every range must stay near 100 points, or the chart payload explodes.
+		if points := r / w; points < 50 || points > 150 {
+			t.Errorf("%s yields %d points, want roughly 100", key, points)
+		}
+	}
+
+	// Anything else is rejected, not silently coerced to a default.
+	for _, bad := range []string{"99y", "1h; drop", "7d", "0"} {
+		if _, _, ok := parseRange(bad); ok {
+			t.Errorf("%q should be rejected", bad)
+		}
+	}
+}
+
 func TestJoinLatestAliasing(t *testing.T) {
 	// Guards the classic loop-variable/pointer bug: each row must own its float.
 	targets := []models.SnmpTarget{

@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"errors"
 	"log"
+	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -25,5 +28,28 @@ func (h *MetricHandler) GetLatest(c *fiber.Ctx) error {
 		log.Printf("metrics/latest: %v", err)
 		return fiber.NewError(fiber.StatusBadGateway, "datastore unavailable")
 	}
+	return c.JSON(data)
+}
+
+// GetHistory handles GET /api/metrics/history?target_id=..&range=..
+func (h *MetricHandler) GetHistory(c *fiber.Ctx) error {
+	targetID, err := strconv.ParseUint(c.Query("target_id"), 10, 64)
+	if err != nil {
+		// Bad input is the caller's problem — say so, and say which parameter.
+		return fiber.NewError(fiber.StatusBadRequest, "target_id must be a positive integer")
+	}
+
+	data, err := h.svc.History(c.UserContext(), targetID, c.Query("range"))
+	if errors.Is(err, service.ErrUnknownRange) {
+		return fiber.NewError(
+			fiber.StatusBadRequest,
+			"range must be one of "+strings.Join(service.RangeKeys, ", "),
+		)
+	}
+	if err != nil {
+		log.Printf("metrics/history: %v", err)
+		return fiber.NewError(fiber.StatusBadGateway, "datastore unavailable")
+	}
+
 	return c.JSON(data)
 }

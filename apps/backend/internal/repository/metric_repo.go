@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
@@ -83,6 +84,60 @@ from(bucket: %q)
 	}
 
 	return points, nil
+}
+
+// History returns one target's readings over rng, averaged into buckets of
+// window. Aggregating server-side keeps the payload near 100 points whatever
+// the range: 24h of 10-second polls is 8,640 raw points to draw a chart a few
+// hundred pixels wide.
+func (r *MetricRepository) History(
+	ctx context.Context,
+	targetID uint64,
+	rng, window time.Duration,
+) ([]models.MetricSample, error) {
+	// targetID is the only value here that originates in an HTTP request. It
+	// arrives as a uint64 and is re-rendered as decimal digits, so nothing
+	// that could close the string literal can survive the round trip.
+	flux := fmt.Sprintf(`
+from(bucket: %q)
+  |> range(start: -%s)
+  |> filter(fn: (r) => r._field == %q and r.%s == %q)
+  |> aggregateWindow(every: %s, fn: mean, createEmpty: false)
+  |> sort(columns: ["_time"])`,
+		r.bucket,
+		influxDuration(rng),
+		models.FieldValue,
+		models.TagTargetID,
+		strconv.FormatUint(targetID, 10),
+		influxDuration(window),
+	)
+
+	result, err := r.query.Query(ctx, flux)
+	if err != nil {
+		return nil, fmt.Errorf("influx history query: %w", err)
+	}
+	defer result.Close()
+
+	samples := make([]models.MetricSample, 0, 128)
+	for result.Next() {
+		rec := result.Record()
+		value, ok := rec.Value().(float64)
+		if !ok {
+			continue
+		}
+		samples = append(samples, models.MetricSample{Time: rec.Time(), Value: value})
+	}
+	if err := result.Err(); err != nil {
+		return nil, fmt.Errorf("influx history stream: %w", err)
+	}
+
+	return samples, nil
+}
+
+// influxDuration renders a duration the way Flux wants it. Go's String()
+// produces "1h0m0s", which Flux rejects.
+func influxDuration(d time.Duration) string {
+	return fmt.Sprintf("%ds", int64(d.Seconds()))
 }
 
 // Write buffers a point. It never blocks and never returns an error —

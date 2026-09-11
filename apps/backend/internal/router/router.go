@@ -17,4 +17,5 @@ func Register(app *fiber.App, metrics *handler.MetricHandler) {
 
 	api := app.Group("/api")
 	api.Get("/metrics/latest", metrics.GetLatest)
+	api.Get("/metrics/history", metrics.GetHistory)
 }
