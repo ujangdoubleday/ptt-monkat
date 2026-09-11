@@ -6,6 +6,8 @@ export interface LatestMetric {
   oid: string
   metric_name: string
   unit: string
+  /** Routes a target to a page: 'device' for the cards, 'power' for the sites. */
+  category: string
   /** null when the target is registered but has never been polled. */
   value: number | null
   timestamp: string | null
