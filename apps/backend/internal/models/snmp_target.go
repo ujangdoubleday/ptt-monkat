@@ -17,6 +17,9 @@ type SnmpTarget struct {
 	Unit       string  `gorm:"column:unit"           json:"unit"`
 	Multiplier float64 `gorm:"column:multiplier"     json:"multiplier"`
 	IsActive   bool    `gorm:"column:is_active"      json:"is_active"`
+	// Category routes a target to a page: "device" for the card dashboard,
+	// "power" for the site power table.
+	Category string `gorm:"column:category" json:"category"`
 
 	SNMPCommunity   string `gorm:"column:snmp_community"    json:"snmp_community"`
 	SNMPVersion     string `gorm:"column:snmp_version"      json:"snmp_version"` // "1" | "2c" | "3"
