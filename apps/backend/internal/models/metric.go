@@ -49,6 +49,7 @@ type LatestMetric struct {
 	OID        string     `json:"oid"`
 	MetricName string     `json:"metric_name"`
 	Unit       string     `json:"unit"`
+	Category   string     `json:"category"`
 	Value      *float64   `json:"value"`
 	Timestamp  *time.Time `json:"timestamp"`
 }
