@@ -1,4 +1,3 @@
-import { Card } from '@/components/ui/card'
 import {
   formatValue,
   freshness,
@@ -7,7 +6,7 @@ import {
   type LatestMetric,
 } from '@/lib/metrics'
 
-/** The state channel: a 2px rule down the left edge carrying the freshness. */
+/** The state channel: a 3px rule down the left edge carrying the freshness. */
 const channel: Record<Freshness, string> = {
   live: 'border-l-state-live',
   stale: 'border-l-state-stale',
@@ -20,12 +19,29 @@ const ageTone: Record<Freshness, string> = {
   silent: 'text-muted-foreground',
 }
 
-export function MetricCard({ metric, now }: { metric: LatestMetric; now: number }) {
+export function MetricCard({
+  metric,
+  now,
+  selected,
+  onSelect,
+}: {
+  metric: LatestMetric
+  now: number
+  selected: boolean
+  onSelect: () => void
+}) {
   const state = freshness(metric.timestamp, now)
 
+  // A real <button>, not a div with onClick — the card is the chart selector,
+  // so it has to be reachable and operable from the keyboard.
   return (
-    <Card
-      className={`bg-muted/40 gap-0 rounded-none rounded-r-sm border-0 border-l-[3px] py-3.5 pr-4 pl-3.5 shadow-none ${channel[state]}`}
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={`bg-muted/40 focus-visible:ring-ring cursor-pointer rounded-none rounded-r-sm border-0 border-l-[3px] py-3.5 pr-4 pl-3.5 text-left focus-visible:ring-2 focus-visible:outline-none ${
+        channel[state]
+      } ${selected ? 'ring-foreground/25 ring-2' : ''}`}
     >
       <p className="text-foreground/70 text-[0.8125rem] leading-none">{metric.metric_name}</p>
 
@@ -47,6 +63,6 @@ export function MetricCard({ metric, now }: { metric: LatestMetric; now: number 
       <p className={`tabular mt-2.5 text-xs leading-none ${ageTone[state]}`}>
         {relativeAge(metric.timestamp, now)}
       </p>
-    </Card>
+    </button>
   )
 }

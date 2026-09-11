@@ -17,8 +17,18 @@ export interface DeviceGroup {
   metrics: LatestMetric[]
 }
 
-/** Matches the backend's POLL_INTERVAL default. */
-export const POLL_INTERVAL_MS = 60_000
+/** Matches POLL_INTERVAL in apps/backend/.env. */
+export const POLL_INTERVAL_MS = 10_000
+
+/** One point of GET /api/metrics/history. Mirrors Go's models.MetricSample. */
+export interface MetricSample {
+  t: string
+  v: number
+}
+
+/** Selectable chart ranges. Must match `ranges` in the Go service. */
+export const RANGES = ['15m', '1h', '6h', '24h'] as const
+export type Range = (typeof RANGES)[number]
 
 /**
  * How much an operator can trust a reading.
