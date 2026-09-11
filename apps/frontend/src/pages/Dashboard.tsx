@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
-import { Moon, Sun } from 'lucide-react'
+import { useState } from 'react'
 import { MetricCard } from '@/components/MetricCard'
 import { MetricChart } from '@/components/MetricChart'
+import { PageNav } from '@/components/PageNav'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useMetricHistory } from '@/hooks/useMetricHistory'
+import { useNow } from '@/hooks/useNow'
 import { useSnmpMetrics } from '@/hooks/useSnmpMetrics'
-import { useTheme } from '@/hooks/useTheme'
 import {
   POLL_INTERVAL_MS,
   RANGES,
@@ -17,30 +17,16 @@ import {
   type Range,
 } from '@/lib/metrics'
 
-/**
- * Re-renders the age lines between refetches. Without this "12s ago" would sit
- * frozen on screen — worse than showing nothing, because it reads as current.
- */
-function useNow(intervalMs = 5_000) {
-  const [now, setNow] = useState(() => Date.now())
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), intervalMs)
-    return () => clearInterval(id)
-  }, [intervalMs])
-
-  return now
-}
-
-export function Dashboard() {
+export function Dashboard({ route }: { route: string }) {
   const { data, isPending, isError, error, isFetching, refetch } = useSnmpMetrics()
-  const { theme, toggle } = useTheme()
   const now = useNow()
 
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [range, setRange] = useState<Range>('15m')
 
-  const metrics = data ?? []
+  // Site power targets live on their own page — without this filter the card
+  // grid would try to render ~340 of them.
+  const metrics = (data ?? []).filter((m) => m.category !== 'power')
   const groups = groupByDevice(metrics)
   const live = countLive(metrics, now)
 
@@ -69,14 +55,7 @@ export function Dashboard() {
               {live} of {metrics.length} reporting
             </p>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggle}
-            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-          >
-            {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </Button>
+          <PageNav route={route} />
         </div>
       </header>
 
