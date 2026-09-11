@@ -15,6 +15,7 @@ services:
     volumes:
       # runs once on an empty data dir
       - ./db/001_mariadb_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./db/002_demo_targets.sql:/docker-entrypoint-initdb.d/002_demo.sql:ro
       - mariadb_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
@@ -51,6 +52,9 @@ services:
     restart: unless-stopped
     ports:
       - "1161:161/udp"
+    volumes:
+      - ./sim/snmpd.conf:/etc/snmp/snmpd.conf:ro
+      - ./sim/ptt-sim.sh:/usr/local/bin/ptt-sim.sh:ro
 
 volumes:
   mariadb_data:
